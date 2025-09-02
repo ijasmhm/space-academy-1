@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription, DialogClose } from "@/components/ui/dialog";
 import { Plus, Edit, Trash2, BookOpen, Search, Users, Upload, File } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -126,10 +126,8 @@ const CourseManagement = () => {
       return;
     }
     
-    // In a real app, you'd handle the file upload to a server here.
-    // For this demo, we'll just add it to the local state.
     if(uploadingCourse) {
-        const newFile: CourseFile = { name: uploadFormData.fileName, url: "#" };
+        const newFile: CourseFile = { name: uploadFormData.fileName, url: URL.createObjectURL(uploadFormData.file) };
         setCourses(courses.map(course => 
             course.id === uploadingCourse.id 
                 ? { ...course, files: [...course.files, newFile] }
@@ -154,7 +152,92 @@ const CourseManagement = () => {
 
   return (
     <div className="space-y-6">
-       {/* Header, Add Course Dialog, Search Bar etc. remain unchanged */}
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="p-3 bg-primary/10 rounded-lg">
+            <BookOpen className="h-7 w-7 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold font-heading">Course Management</h1>
+            <p className="text-muted-foreground">Create, edit, and manage all university courses.</p>
+          </div>
+        </div>
+        <div className="w-full sm:w-auto flex flex-col sm:flex-row gap-2">
+          <div className="relative w-full sm:w-64">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input 
+              placeholder="Search courses..." 
+              className="pl-10" 
+              value={searchQuery} 
+              onChange={(e) => setSearchQuery(e.target.value)} 
+            />
+          </div>
+          <Button onClick={() => setIsDialogOpen(true)} className="flex-shrink-0">
+            <Plus className="h-4 w-4 mr-2" />
+            Add New Course
+          </Button>
+        </div>
+      </div>
+
+      {/* Add/Edit Course Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent onInteractOutside={(e) => e.preventDefault()} className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>{editingCourse ? "Edit Course" : "Add New Course"}</DialogTitle>
+            <DialogDescription>
+              {editingCourse ? "Update the details of the course." : "Fill in the details for the new course."}
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSubmit}>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="code" className="text-right">Course Code</Label>
+                <Input id="code" value={formData.code} onChange={(e) => setFormData({...formData, code: e.target.value})} className="col-span-3" />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="title" className="text-right">Course Title</Label>
+                <Input id="title" value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} className="col-span-3" />
+              </div>
+            </div>
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button type="button" variant="outline">Cancel</Button>
+              </DialogClose>
+              <Button type="submit">{editingCourse ? "Save Changes" : "Create Course"}</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Upload File Dialog */}
+      <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Upload File to {uploadingCourse?.code}</DialogTitle>
+            <DialogDescription>Select a file and provide a name for it.</DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleUploadSubmit}>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="fileName" className="text-right">File Name</Label>
+                <Input id="fileName" value={uploadFormData.fileName} onChange={(e) => setUploadFormData({...uploadFormData, fileName: e.target.value})} className="col-span-3" />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="fileUpload" className="text-right">File</Label>
+                <Input id="fileUpload" type="file" onChange={(e) => setUploadFormData({...uploadFormData, file: e.target.files ? e.target.files[0] : null})} className="col-span-3" />
+              </div>
+            </div>
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button type="button" variant="outline">Cancel</Button>
+              </DialogClose>
+              <Button type="submit">Upload</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
 
       {/* Courses Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -187,6 +270,8 @@ const CourseManagement = () => {
                       <a
                         key={index}
                         href={file.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="flex items-center text-sm text-muted-foreground hover:text-primary transition-colors"
                       >
                         <File className="h-4 w-4 mr-2 flex-shrink-0" />
@@ -211,7 +296,6 @@ const CourseManagement = () => {
           </Card>
         ))}
       </div>
-       {/* The rest of the component (dialogs etc.) remains the same */}
     </div>
   );
 };

@@ -1,5 +1,4 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { BookOpen, Users, FileText, TrendingUp, Calendar, Award, Building } from "lucide-react";
 import { Link } from "react-router-dom";
 import universityHero from "@/assets/university-hero.jpg";
@@ -42,20 +41,6 @@ const Dashboard = () => {
               Streamline your university course management with our comprehensive platform. 
               Manage courses, students, and results all in one place.
             </p>
-            <div className="flex gap-4">
-              <Button size="lg" variant="secondary" asChild className="shadow-medium">
-                <Link to="/courses">
-                  <BookOpen className="h-5 w-5 mr-2" />
-                  Manage Courses
-                </Link>
-              </Button>
-              <Button size="lg" variant="outline" asChild className="border-white text-white hover:bg-white hover:text-primary">
-                <Link to="/students">
-                  <Users className="h-5 w-5 mr-2" />
-                  Student Portal
-                </Link>
-              </Button>
-            </div>
           </div>
         </div>
       </div>
