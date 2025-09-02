@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BookOpen, Users, FileText, TrendingUp, Calendar, Award } from "lucide-react";
+import { BookOpen, Users, FileText, TrendingUp, Calendar, Award, Building } from "lucide-react";
 import { Link } from "react-router-dom";
 import universityHero from "@/assets/university-hero.jpg";
 
@@ -16,6 +16,7 @@ const Dashboard = () => {
     { title: "Add New Course", icon: BookOpen, path: "/courses", description: "Create and manage courses" },
     { title: "Register Student", icon: Users, path: "/students", description: "Add new student enrollment" },
     { title: "Record Results", icon: FileText, path: "/results", description: "Enter academic results" },
+    { title: "About Us", icon: Building, path: "/about", description: "Learn more about our university" },
   ];
 
   const recentActivity = [

@@ -10,7 +10,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useUser } from "@/contexts/UserContext";
-import { GraduationCap, Users, BookOpen, FileText, LogOut, User as UserIcon, Calendar as CalendarIcon } from "lucide-react";
+import { GraduationCap, Users, BookOpen, FileText, LogOut, User as UserIcon, Calendar as CalendarIcon, Building } from "lucide-react";
 
 const Header = () => {
   const { user, logout } = useUser();
@@ -27,6 +27,7 @@ const Header = () => {
     { path: "/students", icon: Users, label: "Students" },
     { path: "/results", icon: FileText, label: "Results" },
     { path: "/exams", icon: CalendarIcon, label: "Exams" },
+    { path: "/about", icon: Building, label: "About Us" },
   ];
 
   return (

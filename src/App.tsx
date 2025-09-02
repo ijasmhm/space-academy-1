@@ -15,6 +15,7 @@ import CourseDetailsPage from "./pages/CourseDetails";
 import StudentProfilePage from "./pages/StudentProfile";
 import LoginPage from "./pages/Login";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AboutUs from "./pages/AboutUs";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +37,7 @@ const App = () => (
                 <Route path="students/:studentId" element={<StudentProfilePage />} />
                 <Route path="results" element={<ResultManagement />} />
                 <Route path="exams" element={<ExamManagement />} />
+                <Route path="about" element={<AboutUs />} />
               </Route>
             </Route>
             <Route path="*" element={<NotFound />} />
