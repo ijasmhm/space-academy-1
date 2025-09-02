@@ -1,107 +1,88 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Link } from "react-router-dom";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Edit, Trash2, Users } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Plus, Edit, Trash2, Users, Search, Mail } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface Student {
-  id: number;
+  id: string;
   name: string;
   email: string;
+  major: string;
 }
 
 const StudentManagement = () => {
   const [students, setStudents] = useState<Student[]>([
-    { id: 1, name: "Alice Johnson", email: "alice.johnson@university.edu" },
-    { id: 2, name: "Bob Smith", email: "bob.smith@university.edu" },
-    { id: 3, name: "Carol Williams", email: "carol.williams@university.edu" },
+    { id: "S001", name: "Alice Johnson", email: "alice.j@university.edu", major: "Computer Science" },
+    { id: "S002", name: "Bob Smith", email: "bob.s@university.edu", major: "Mathematics" },
+    { id: "S003", name: "Carol Williams", email: "carol.w@university.edu", major: "English Literature" },
   ]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
-  const [formData, setFormData] = useState({ name: "", email: "" });
+  const [formData, setFormData] = useState({ name: "", email: "", major: "" });
+  const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
 
   const resetForm = () => {
-    setFormData({ name: "", email: "" });
+    setFormData({ name: "", email: "", major: "" });
     setEditingStudent(null);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!formData.name.trim() || !formData.email.trim()) {
-      toast({
-        title: "Error",
-        description: "Please fill in all fields",
-        variant: "destructive",
-      });
+    if (!formData.name.trim() || !formData.email.trim() || !formData.major.trim()) {
+      toast({ title: "Error", description: "Please fill in all fields", variant: "destructive" });
       return;
     }
-
-    // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
-      toast({
-        title: "Error",
-        description: "Please enter a valid email address",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: "Invalid email address", variant: "destructive" });
       return;
     }
 
     if (editingStudent) {
-      // Update student
-      setStudents(students.map(student => 
-        student.id === editingStudent.id 
-          ? { ...student, name: formData.name, email: formData.email }
-          : student
-      ));
-      toast({
-        title: "Success",
-        description: "Student updated successfully",
-      });
+      setStudents(students.map(s => s.id === editingStudent.id ? { ...s, ...formData } : s));
+      toast({ title: "Success", description: "Student updated successfully" });
     } else {
-      // Add new student
-      const newStudent: Student = {
-        id: Math.max(...students.map(s => s.id), 0) + 1,
-        name: formData.name,
-        email: formData.email,
+      const newStudent: Student = { 
+        id: `S${(Math.random() * 1000).toFixed(0).padStart(3, '0')}`,
+        ...formData
       };
       setStudents([...students, newStudent]);
-      toast({
-        title: "Success",
-        description: "Student created successfully",
-      });
+      toast({ title: "Success", description: "Student added successfully" });
     }
-
     resetForm();
     setIsDialogOpen(false);
   };
 
   const handleEdit = (student: Student) => {
     setEditingStudent(student);
-    setFormData({ name: student.name, email: student.email });
+    setFormData({ name: student.name, email: student.email, major: student.major });
     setIsDialogOpen(true);
   };
 
-  const handleDelete = (studentId: number) => {
-    setStudents(students.filter(student => student.id !== studentId));
-    toast({
-      title: "Success",
-      description: "Student deleted successfully",
-    });
+  const handleDelete = (studentId: string) => {
+    setStudents(students.filter(s => s.id !== studentId));
+    toast({ title: "Success", description: "Student removed successfully" });
   };
+
+  const filteredStudents = students.filter(s =>
+    s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    s.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    s.major.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold font-heading text-foreground">Student Management</h1>
-          <p className="text-muted-foreground mt-2">Manage student enrollment and information</p>
+          <h1 className="text-3xl font-bold font-heading text-foreground">Student Roster</h1>
+          <p className="text-muted-foreground mt-2">Browse and manage student profiles.</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
@@ -111,100 +92,63 @@ const StudentManagement = () => {
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle className="flex items-center">
-                <Users className="h-5 w-5 mr-2 text-primary" />
-                {editingStudent ? "Edit Student" : "Add New Student"}
-              </DialogTitle>
-            </DialogHeader>
+            <DialogHeader><DialogTitle className="flex items-center"><Users className="h-5 w-5 mr-2 text-primary" />{editingStudent ? "Edit Profile" : "New Student"}</DialogTitle></DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="e.g., John Doe"
-                  className="focus:ring-primary"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  placeholder="e.g., john.doe@university.edu"
-                  className="focus:ring-primary"
-                />
-              </div>
+              <Input id="name" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="Full Name" />
+              <Input id="email" type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} placeholder="Email Address" />
+              <Input id="major" value={formData.major} onChange={e => setFormData({...formData, major: e.target.value})} placeholder="Major" />
               <div className="flex gap-2 pt-4">
-                <Button type="submit" className="flex-1 university-gradient hover:opacity-90">
-                  {editingStudent ? "Update Student" : "Create Student"}
-                </Button>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => setIsDialogOpen(false)}
-                >
-                  Cancel
-                </Button>
+                <Button type="submit" className="flex-1 university-gradient hover:opacity-90">{editingStudent ? "Save Changes" : "Add Student"}</Button>
+                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
               </div>
             </form>
           </DialogContent>
         </Dialog>
       </div>
 
-      <Card className="university-card hover-lift">
-        <CardHeader>
-          <CardTitle className="flex items-center text-foreground">
-            <Users className="h-5 w-5 mr-2 text-primary" />
-            All Students ({students.length})
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="rounded-md border border-border">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/50">
-                  <TableHead className="font-semibold">Student Name</TableHead>
-                  <TableHead className="font-semibold">Email</TableHead>
-                  <TableHead className="text-right font-semibold">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {students.map((student) => (
-                  <TableRow key={student.id} className="hover:bg-muted/30">
-                    <TableCell className="font-medium">{student.name}</TableCell>
-                    <TableCell>{student.email}</TableCell>
-                    <TableCell className="text-right space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleEdit(student)}
-                        className="hover:bg-primary hover:text-primary-foreground"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDelete(student.id)}
-                        className="hover:bg-destructive hover:text-destructive-foreground"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="relative w-full max-w-lg">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+        <Input
+          type="search"
+          placeholder="Search by name, email, or major..."
+          className="pl-10 w-full bg-card border-border shadow-soft focus:ring-primary"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {filteredStudents.map((student) => (
+          <Card key={student.id} className="text-center university-card hover-lift transition-all duration-300 flex flex-col">
+            <CardHeader className="flex flex-col items-center pt-8">
+              <Avatar className="h-24 w-24 border-4 border-background shadow-lg">
+                <AvatarImage src={`https://i.pravatar.cc/150?u=${student.id}`} alt={student.name} />
+                <AvatarFallback>{student.name.charAt(0)}</AvatarFallback>
+              </Avatar>
+            </CardHeader>
+            <CardContent className="flex-grow">
+              <Link to={`/students/${student.id}`} className="text-primary font-bold text-lg hover:underline">
+                {student.name}
+              </Link>
+              <p className="text-muted-foreground text-sm">{student.major}</p>
+              <div className="flex items-center justify-center text-muted-foreground pt-3">
+                <Mail className="h-4 w-4 mr-2" />
+                <a href={`mailto:${student.email}`} className="text-xs hover:underline">{student.email}</a>
+              </div>
+            </CardContent>
+            <CardFooter className="flex justify-center space-x-2 bg-muted/30 py-3">
+              <Button variant="outline" size="sm" onClick={() => handleEdit(student)} className="hover:bg-primary hover:text-primary-foreground">
+                <Edit className="h-4 w-4" />
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => handleDelete(student.id)} className="hover:bg-destructive hover:text-destructive-foreground">
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </CardFooter>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 };
 
-export default StudentManagement;
+export default StudentManagement; 

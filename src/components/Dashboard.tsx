@@ -48,7 +48,7 @@ const Dashboard = () => {
                   Manage Courses
                 </Link>
               </Button>
-              <Button size="lg" variant="outline" asChild className="border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary">
+              <Button size="lg" variant="outline" asChild className="border-white text-white hover:bg-white hover:text-primary">
                 <Link to="/students">
                   <Users className="h-5 w-5 mr-2" />
                   Student Portal
