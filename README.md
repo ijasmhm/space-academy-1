@@ -1,24 +1,7 @@
-# Welcome to your Lovable project
+# Welcome to your university course management project
 
 ## Project info
 
-**URL**: https://lovable.dev/projects/d03a26f8-7daf-4282-a2cd-e8ee4a0dffa2
-
-## How can I edit this code?
-
-There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/d03a26f8-7daf-4282-a2cd-e8ee4a0dffa2) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
 Follow these steps:
 
@@ -36,38 +19,95 @@ npm i
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
 
 ## What technologies are used for this project?
 
-This project is built with:
+Java: The core programming language used for the backend logic.
+Spring Boot: A Java-based framework used to create the web application and REST APIs. It simplifies the development of stand-alone, production-grade Spring-based applications.
+JPA (Java Persistence API) & Hibernate: Used for object-relational mapping (ORM), which simplifies database interactions by allowing us to work with Java objects instead of writing raw SQL queries.
+H2 Database: An in-memory database used for development and testing. It's fast and doesn't require any external setup.
+Maven: A build automation and project management tool used to manage the backend project's dependencies and build the application.
+As seen in your README.md file, the frontend is built with a modern web stack:
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+React: A JavaScript library for building user interfaces.
+TypeScript: A superset of JavaScript that adds static typing, improving code quality and maintainability.
+Vite: A fast build tool and development server for modern web projects.
+Tailwind CSS: A utility-first CSS framework for rapidly building custom designs.
+shadcn-ui: A collection of re-usable UI components built with Radix UI and Tailwind CSS.
+
+Docker & Docker Compose: Used to containerize both the frontend and backend services, allowing them to run in isolated environments and making the application easy to build, ship, and run anywhere.
+
+
 
 ## How can I deploy this project?
 
-Simply open [Lovable](https://lovable.dev/projects/d03a26f8-7daf-4282-a2cd-e8ee4a0dffa2) and click on Share -> Publish.
+# Prerequisites:
 
-## Can I connect a custom domain to my Lovable project?
+Git
+Docker
+Docker Compose
 
-Yes, you can!
+1. First, clone the application's source code from your repository to your deployment server.
+git clone <your-repository-url>
+cd <your-project-directory>
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+2.The application is currently configured to use an in-memory H2 database, which is not suitable for production as all data will be lost on restart. The following steps show how to configure it for a persistent PostgreSQL database.
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+a. Add PostgreSQL Dependency: Add the PostgreSQL driver dependency to your backend/pom.xml file:
+<dependency>
+    <groupId>org.postgresql</groupId>
+    <artifactId>postgresql</artifactId>
+    <scope>runtime</scope>
+</dependency>
+
+b. Update Application Properties: Modify backend/src/main/resources/application.properties to connect to the PostgreSQL database service that will be created in docker-compose.yml.
+spring.datasource.url=jdbc:postgresql://db:5432/yourdb
+spring.datasource.username=youruser
+spring.datasource.password=yourpassword
+spring.datasource.driverClassName=org.postgresql.Driver
+spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
+spring.jpa.hibernate.ddl-auto=update
+
+c. Update docker-compose.yml: Modify the docker-compose.yml file to include a PostgreSQL service (db) and configure the backend to use it.
+version: '3.8'
+services:
+  db:
+    image: postgres:14-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=youruser
+      - POSTGRES_PASSWORD=yourpassword
+      - POSTGRES_DB=yourdb
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/yourdb
+      - SPRING_DATASOURCE_USERNAME=youruser
+      - SPRING_DATASOURCE_PASSWORD=yourpassword
+      - SPRING_JPA_DATABASE-PLATFORM=org.hibernate.dialect.PostgreSQLDialect
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+
+3. Once the configuration is complete, run the following command from the root of your project directory. This will build the Docker images for the frontend and backend services and start the containers.
+docker-compose up -d --build
+
+4. After the containers have started, you can access the application:
+Frontend: http://<your-server-ip>:5173
+Backend API: http://<your-server-ip>:8080
